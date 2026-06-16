@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Offline</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #141414;
+            color: #d4d4d4;
+            padding: 12px;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+            background: #1e1e1e;
+            padding: 16px;
+            border-radius: 10px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+            box-sizing: border-box;
+        }
+
+        h3 {
+            margin-top: 0;
+            text-align: center;
+            color: #b0b0b0;
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 4px;
+            font-weight: 500;
+            font-size: 13px;
+            color: #aaa;
+            letter-spacing: 0.3px;
+        }
+
+        textarea,
+        select,
+        input,
+        button {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border: 1px solid #3a3a3a;
+            border-radius: 6px;
+            background: #282828;
+            color: #e8e8e8;
+            font-size: 14px;
+            font-family: inherit;
+            -webkit-appearance: none;
+            appearance: none;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus,
+        select:focus,
+        input:focus,
+        button:focus {
+            outline: none;
+            border-color: #7a7a7a;
+        }
+
+        textarea {
+            height: 90px;
+            resize: none;
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+
+        /* Tombol vertikal – tetap seperti aslinya */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        button {
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            margin: 0;
+            padding: 11px 12px;
+            border-radius: 6px;
+            transition: background 0.15s, opacity 0.15s;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-enc {
+            background: #6e6e6e;
+            color: #fff;
+        }
+        .btn-enc:hover {
+            background: #7e7e7e;
+        }
+
+        .btn-dec {
+            background: #4a4a4a;
+            color: #fff;
+        }
+        .btn-dec:hover {
+            background: #5a5a5a;
+        }
+
+        .btn-copy {
+            background: #333;
+            color: #d0d0d0;
+            margin-top: 4px;
+            border: 1px solid #4a4a4a;
+        }
+        .btn-copy:hover {
+            background: #3d3d3d;
+        }
+
+        button:active {
+            opacity: 0.75;
+            transform: scale(0.98);
+        }
+
+        .result-box {
+            background: #242424;
+            border-left: 4px solid #6e6e6e;
+        }
+
+        .result-box:read-only {
+            color: #d0d0d0;
+        }
+
+        /* Pesan status kecil */
+        .status-msg {
+            font-size: 12px;
+            color: #999;
+            margin: 2px 0 6px;
+            min-height: 18px;
+            text-align: center;
+        }
+
+        .status-msg.error {
+            color: #e57373;
+        }
+        .status-msg.success {
+            color: #81c784;
+        }
+
+        /* Responsif tetap rapi */
+        @media (max-width: 480px) {
+            .container {
+                padding: 12px;
+            }
+            textarea {
+                height: 80px;
+            }
+            h3 {
+                font-size: 17px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h3>🔐 Crypto Offline</h3>
+
+        <label for="algo">Pilih Metode:</label>
+        <select id="algo">
+            <option value="custom_easy">Ringan — AES-256-CBC</option>
+            <option value="custom_hard">Kompleks — AES-256-GCM</option>
+        </select>
+
+        <label for="key">Kunci Rahasia (Key):</label>
+        <input type="text" id="key" placeholder="Masukkan kunci bebas..." autocomplete="off">
+
+        <label for="input">Teks Sumber:</label>
+        <textarea id="input" placeholder="Ketik teks di sini..."></textarea>
+
+        <div class="btn-group">
+            <button class="btn-enc" id="btnEnc">ENKRIPSI TEKS</button>
+            <button class="btn-dec" id="btnDec">DEKRIPSI TEKS</button>
+        </div>
+
+        <label for="output">Hasil:</label>
+        <textarea id="output" class="result-box" readonly placeholder="Hasil akan muncul di sini..."></textarea>
+        <button class="btn-copy" id="btnCopy">SALIN HASIL</button>
+
+        <div id="statusMsg" class="status-msg"></div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ---- DOM refs ----
+            const algoEl = document.getElementById('algo');
+            const keyEl = document.getElementById('key');
+            const inputEl = document.getElementById('input');
+            const outputEl = document.getElementById('output');
+            const statusEl = document.getElementById('statusMsg');
+
+            // ---- Helper: ArrayBuffer ↔ Base64 ----
+            function bufToBase64(buf) {
+                const bytes = new Uint8Array(buf);
+                let binary = '';
+                for (let i = 0; i < bytes.length; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                return btoa(binary);
+            }
+
+            function base64ToBuf(base64) {
+                const binary = atob(base64);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) {
+                    bytes[i] = binary.charCodeAt(i);
+                }
+                return bytes.buffer;
+            }
+
+            // ---- Helper: PBKDF2 key derivation ----
+            async function deriveKey(password, salt, iterations, hash, length) {
+                const enc = new TextEncoder();
+                const keyMaterial = await crypto.subtle.importKey(
+                    'raw',
+                    enc.encode(password || 'default-key'),
+                    'PBKDF2',
+                    false,
+                    ['deriveKey']
+                );
+                return crypto.subtle.deriveKey({
+                        name: 'PBKDF2',
+                        salt: enc.encode(salt),
+                        iterations: iterations,
+                        hash: hash,
+                    },
+                    keyMaterial, {
+                        name: 'AES-CBC',
+                        length: length,
+                    },
+                    false,
+                    ['encrypt', 'decrypt']
+                );
+            }
+
+            async function deriveKeyGcm(password, salt, iterations, hash, length) {
+                const enc = new TextEncoder();
+                const keyMaterial = await crypto.subtle.importKey(
+                    'raw',
+                    enc.encode(password || 'default-key'),
+                    'PBKDF2',
+                    false,
+                    ['deriveKey']
+                );
+                return crypto.subtle.deriveKey({
+                        name: 'PBKDF2',
+                        salt: enc.encode(salt),
+                        iterations: iterations,
+                        hash: hash,
+                    },
+                    keyMaterial, {
+                        name: 'AES-GCM',
+                        length: length,
+                    },
+                    false,
+                    ['encrypt', 'decrypt']
+                );
+            }
+
+            // ---- Fungsi Enkripsi / Dekripsi ----
+            // "Ringan" = AES-256-CBC, PBKDF2 100.000 iterasi, SHA-256
+            async function cipherEasy(text, key, isEncrypt) {
+                const salt = 'crypto_offline_light';
+                const ivLen = 16;
+                const iter = 100000;
+                const hash = 'SHA-256';
+
+                if (isEncrypt) {
+                    // Enkripsi
+                    const iv = crypto.getRandomValues(new Uint8Array(ivLen));
+                    const aesKey = await deriveKey(key, salt, iter, hash, 256);
+                    const enc = new TextEncoder();
+                    const data = enc.encode(text);
+
+                    const ciphertext = await crypto.subtle.encrypt({
+                        name: 'AES-CBC',
+                        iv: iv,
+                    }, aesKey, data);
+
+                    // Gabungkan IV + ciphertext
+                    const combined = new Uint8Array(iv.length + ciphertext.byteLength);
+                    combined.set(iv, 0);
+                    combined.set(new Uint8Array(ciphertext), iv.length);
+                    return bufToBase64(combined.buffer);
+                } else {
+                    // Dekripsi
+                    try {
+                        const combined = new Uint8Array(base64ToBuf(text));
+                        if (combined.length < ivLen) {
+                            throw new Error('Data terlalu pendek.');
+                        }
+                        const iv = combined.slice(0, ivLen);
+                        const ciphertext = combined.slice(ivLen);
+
+                        const aesKey = await deriveKey(key, salt, iter, hash, 256);
+                        const plaintext = await crypto.subtle.decrypt({
+                            name: 'AES-CBC',
+                            iv: iv,
+                        }, aesKey, ciphertext);
+
+                        return new TextDecoder().decode(plaintext);
+                    } catch (e) {
+                        return 'Gagal dekripsi: Data korup atau Key salah.';
+                    }
+                }
+            }
+
+            // "Kompleks" = AES-256-GCM, PBKDF2 600.000 iterasi, SHA-512
+            async function cipherHard(text, key, isEncrypt) {
+                const salt = 'crypto_offline_complex';
+                const ivLen = 12;
+                const tagLen = 16;
+                const iter = 600000;
+                const hash = 'SHA-512';
+
+                if (isEncrypt) {
+                    const iv = crypto.getRandomValues(new Uint8Array(ivLen));
+                    const aesKey = await deriveKeyGcm(key, salt, iter, hash, 256);
+                    const enc = new TextEncoder();
+                    const data = enc.encode(text);
+
+                    const ciphertext = await crypto.subtle.encrypt({
+                        name: 'AES-GCM',
+                        iv: iv,
+                        tagLength: tagLen * 8,
+                    }, aesKey, data);
+
+                    // Gabungkan IV + ciphertext (di dalam ciphertext sudah termasuk tag)
+                    const combined = new Uint8Array(iv.length + ciphertext.byteLength);
+                    combined.set(iv, 0);
+                    combined.set(new Uint8Array(ciphertext), iv.length);
+                    return bufToBase64(combined.buffer);
+                } else {
+                    try {
+                        const combined = new Uint8Array(base64ToBuf(text));
+                        if (combined.length < ivLen + tagLen) {
+                            throw new Error('Data terlalu pendek.');
+                        }
+                        const iv = combined.slice(0, ivLen);
+                        const ciphertext = combined.slice(ivLen);
+
+                        const aesKey = await deriveKeyGcm(key, salt, iter, hash, 256);
+                        const plaintext = await crypto.subtle.decrypt({
+                            name: 'AES-GCM',
+                            iv: iv,
+                            tagLength: tagLen * 8,
+                        }, aesKey, ciphertext);
+
+                        return new TextDecoder().decode(plaintext);
+                    } catch (e) {
+                        return 'Gagal dekripsi: Data korup atau Key salah.';
+                    }
+                }
+            }
+
+            // ---- Proses utama (async) ----
+            async function process(isEncrypt) {
+                const algo = algoEl.value;
+                const key = keyEl.value;
+                const input = inputEl.value;
+
+                // reset status
+                statusEl.textContent = '';
+                statusEl.className = 'status-msg';
+
+                if (!input) {
+                    statusEl.textContent = '⚠️ Teks input tidak boleh kosong.';
+                    statusEl.className = 'status-msg error';
+                    return;
+                }
+
+                // Tampilkan indikator proses
+                const btn = isEncrypt ? document.getElementById('btnEnc') : document.getElementById('btnDec');
+                const origLabel = btn.textContent;
+                btn.textContent = isEncrypt ? '⏳ Mengenkripsi...' : '⏳ Mendekripsi...';
+                btn.disabled = true;
+
+                try {
+                    let output = '';
+                    if (algo === 'custom_easy') {
+                        output = await cipherEasy(input, key, isEncrypt);
+                    } else if (algo === 'custom_hard') {
+                        output = await cipherHard(input, key, isEncrypt);
+                    } else {
+                        output = 'Metode tidak dikenali.';
+                    }
+                    outputEl.value = output;
+
+                    if (output.startsWith('Gagal dekripsi')) {
+                        statusEl.textContent = '❌ ' + output;
+                        statusEl.className = 'status-msg error';
+                    } else {
+                        statusEl.textContent = isEncrypt ? '✅ Enkripsi berhasil.' : '✅ Dekripsi berhasil.';
+                        statusEl.className = 'status-msg success';
+                    }
+                } catch (err) {
+                    outputEl.value = 'Error: ' + err.message;
+                    statusEl.textContent = '❌ Terjadi kesalahan: ' + err.message;
+                    statusEl.className = 'status-msg error';
+                } finally {
+                    btn.textContent = origLabel;
+                    btn.disabled = false;
+                }
+            }
+
+            // ---- Binding tombol ----
+            document.getElementById('btnEnc').addEventListener('click', function(e) {
+                e.preventDefault();
+                process(true);
+            });
+
+            document.getElementById('btnDec').addEventListener('click', function(e) {
+                e.preventDefault();
+                process(false);
+            });
+
+            // ---- Copy ----
+            document.getElementById('btnCopy').addEventListener('click', function() {
+                const val = outputEl.value;
+                if (!val || val.startsWith('Gagal dekripsi') || val.startsWith('Error:')) {
+                    statusEl.textContent = '⚠️ Tidak ada hasil valid untuk disalin.';
+                    statusEl.className = 'status-msg error';
+                    return;
+                }
+
+                // Fallback modern + legacy
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(val)
+                        .then(() => {
+                            statusEl.textContent = '✅ Hasil disalin ke clipboard!';
+                            statusEl.className = 'status-msg success';
+                        })
+                        .catch(() => {
+                            // fallback
+                            outputEl.select();
+                            document.execCommand('copy');
+                            statusEl.textContent = '✅ Hasil disalin!';
+                            statusEl.className = 'status-msg success';
+                        });
+                } else {
+                    outputEl.select();
+                    document.execCommand('copy');
+                    statusEl.textContent = '✅ Hasil disalin!';
+                    statusEl.className = 'status-msg success';
+                }
+                // deselect
+                setTimeout(() => { outputEl.blur(); }, 100);
+            });
+
+            // ---- Enter key di input text bisa memicu enkripsi (opsional) ----
+            inputEl.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    process(true);
+                }
+            });
+
+            // ---- status awal ----
+            statusEl.textContent = '🔒 Semua proses berjalan lokal di perangkat Anda.';
+            statusEl.className = 'status-msg';
+
+            console.log('🔐 Crypto Offline siap — menggunakan Web Crypto API (AES-256)');
+        })();
+    </script>
+
+</body>
+  </html>
