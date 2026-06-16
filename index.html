@@ -1,147 +1,301 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>Crypto Offline</title>
     <style>
-        body { font-family: sans-serif; background: #121212; color: #e0e0e0; padding: 12px; margin: 0; }
-        .container { max-width: 500px; margin: 0 auto; background: #1e1e1e; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); box-sizing: border-box; }
-        h3 { margin-top: 0; text-align: center; color: #bb86fc; font-size: 18px; }
-        label { display: block; margin: 8px 0 4px; font-weight: bold; font-size: 13px; }
-        textarea, select, input, button { width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 8px; border: 1px solid #333; border-radius: 4px; background: #2d2d2d; color: #fff; font-size: 14px; -webkit-appearance: none; }
-        textarea { height: 90px; resize: none; }
-        
-        /* Perbaikan Layout Tombol: Vertikal di Mobile agar tidak Overflow */
-        .btn-group { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-        button { font-weight: bold; border: none; cursor: pointer; margin: 0; }
-        .btn-enc { background: #bb86fc; color: #121212; }
-        .btn-dec { background: #03dac6; color: #121212; }
-        .btn-copy { background: #333; color: #fff; margin-top: 4px; border: 1px solid #555; }
-        button:active { opacity: 0.8; }
-        .result-box { background: #252525; border-left: 4px solid #bb86fc; }
+        /* ── Reset & Base ── */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #121212;
+            color: #d4d4d4;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            margin: 0;
+        }
+
+        /* ── Container ── */
+        .container {
+            max-width: 420px;
+            width: 100%;
+            background: #1e1e1e;
+            border-radius: 16px;
+            padding: 28px 20px 32px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+
+        /* ── Header ── */
+        .logo {
+            font-size: 48px;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #e8e8e8;
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 28px;
+            font-weight: 400;
+        }
+
+        .subtitle span {
+            color: #6e6e6e;
+        }
+
+        /* ── Cards ── */
+        .card-group {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            display: block;
+            background: #282828;
+            border-radius: 12px;
+            padding: 18px 16px 16px;
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+            border: 1px solid #333;
+            text-align: left;
+            position: relative;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .card:active {
+            transform: scale(0.97);
+            background: #303030;
+        }
+
+        .card:hover {
+            background: #2e2e2e;
+            border-color: #4a4a4a;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+
+        .card-icon {
+            font-size: 28px;
+            line-height: 1;
+            flex-shrink: 0;
+            width: 36px;
+            text-align: center;
+        }
+
+        .card-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #e8e8e8;
+            letter-spacing: 0.2px;
+        }
+
+        .card-badge {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            background: #3a3a3a;
+            color: #aaa;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .card-badge.original {
+            background: #3a3a3a;
+            color: #aaa;
+        }
+
+        .card-badge.advance {
+            background: #4a4a4a;
+            color: #ccc;
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: #999;
+            line-height: 1.5;
+            padding-left: 48px;
+            /* align with icon */
+        }
+
+        .card-desc strong {
+            color: #bbb;
+            font-weight: 500;
+        }
+
+        .card-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 10px;
+            padding-left: 48px;
+            margin-top: 8px;
+        }
+
+        .card-features span {
+            font-size: 11px;
+            color: #777;
+            background: #1e1e1e;
+            padding: 2px 10px;
+            border-radius: 12px;
+            border: 1px solid #333;
+        }
+
+        /* ── Footer / Info ── */
+        .footer-note {
+            font-size: 12px;
+            color: #555;
+            border-top: 1px solid #2a2a2a;
+            padding-top: 18px;
+            margin-top: 4px;
+            letter-spacing: 0.2px;
+        }
+
+        .footer-note span {
+            color: #6e6e6e;
+        }
+
+        /* ── Responsive fine-tune ── */
+        @media (max-width: 400px) {
+            .container {
+                padding: 20px 14px 24px;
+            }
+            .card {
+                padding: 14px 12px;
+            }
+            .card-title {
+                font-size: 15px;
+            }
+            .card-desc {
+                font-size: 12px;
+                padding-left: 40px;
+            }
+            .card-features {
+                padding-left: 40px;
+            }
+            .card-icon {
+                font-size: 24px;
+                width: 30px;
+            }
+            .logo {
+                font-size: 40px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .card-features span {
+                font-size: 10px;
+                padding: 1px 8px;
+            }
+            .card-desc {
+                font-size: 11px;
+            }
+        }
+
+        /* ── Touch-friendly tap highlight ── */
+        .card {
+            -webkit-touch-callout: none;
+        }
+
+        /* ── Accessibility ── */
+        .card:focus-visible {
+            outline: 2px solid #6e6e6e;
+            outline-offset: 2px;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h3>Crypto Offline</h3>
-    
-    <label for="algo">Pilih Metode:</label>
-    <select id="algo">
-        <option value="custom_easy">Custom - Ringan</option>
-        <option value="custom_hard">Custom - Kompleks</option>
-    </select>
+    <div class="container">
 
-    <label for="key">Kunci Rahasia (Key):</label>
-    <input type="text" id="key" placeholder="Masukkan kunci bebas...">
+        <!-- Header -->
+        <div class="logo">🔐</div>
+        <h1>Crypto Offline</h1>
+        <p class="subtitle">Enkripsi lokal di perangkat Anda &bull; <span>tanpa server</span></p>
 
-    <label for="input">Teks Sumber:</label>
-    <textarea id="input" placeholder="Ketik teks di sini..."></textarea>
+        <!-- Card: Original -->
+        <div class="card-group">
+            <a href="original.html" class="card" id="cardOriginal">
+                <div class="card-header">
+                    <span class="card-icon">📦</span>
+                    <span class="card-title">Original</span>
+                    <span class="card-badge original">ringan</span>
+                </div>
+                <div class="card-desc">
+                    Metode <strong>custom</strong> berbasis XOR &amp; pergeseran karakter.
+                    Dua varian: <strong>Ringan</strong> &amp; <strong>Kompleks</strong>.
+                </div>
+                <div class="card-features">
+                    <span>⚡ cepat</span>
+                    <span>🔄 XOR + shift</span>
+                    <span>🔑 key salt</span>
+                </div>
+            </a>
 
-    <div class="btn-group">
-        <button class="btn-enc" onclick="process(true)">ENCRYPT TEKS</button>
-        <button class="btn-dec" onclick="process(false)">DECRYPT TEKS</button>
+            <!-- Card: Advance -->
+            <a href="advance.html" class="card" id="cardAdvance">
+                <div class="card-header">
+                    <span class="card-icon">🛡️</span>
+                    <span class="card-title">Advance</span>
+                    <span class="card-badge advance">aes-256</span>
+                </div>
+                <div class="card-desc">
+                    <strong>AES-256</strong> berbasis <strong>Web Crypto API</strong>.
+                    Pilihan <strong>CBC</strong> (ringan) atau <strong>GCM</strong> (kompleks).
+                </div>
+                <div class="card-features">
+                    <span>🔒 AES-256</span>
+                    <span>🧂 PBKDF2</span>
+                    <span>📊 100k / 600k iterasi</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer-note">
+            <span>⚡</span> Semua data tetap di perangkat Anda &bull; <span>offline</span>
+        </div>
+
     </div>
 
-    <label for="output">Hasil:</label>
-    <textarea id="output" class="result-box" readonly placeholder="Hasil akan muncul di sini..."></textarea>
-    <button class="btn-copy" onclick="copyResult()">SALIN HASIL</button>
-</div>
-
-<script>
-function getKeySalt(key) {
-    let salt = 0;
-    for (let i = 0; i < key.length; i++) { salt += key.charCodeAt(i); }
-    return salt || 42;
-}
-
-function cipherEasy(text, key, isEncrypt) {
-    const salt = getKeySalt(key);
-    let result = "";
-    if (isEncrypt) {
-        for (let i = 0; i < text.length; i++) {
-            let code = text.charCodeAt(i);
-            let keyChar = key.length ? key.charCodeAt(i % key.length) : 7;
-            let encryptedCode = (code + (salt % 13)) ^ keyChar;
-            result += String.fromCharCode(encryptedCode);
-        }
-        return btoa(unescape(encodeURIComponent(result)));
-    } else {
-        try {
-            let decodedText = decodeURIComponent(escape(atob(text)));
-            for (let i = 0; i < decodedText.length; i++) {
-                let code = decodedText.charCodeAt(i);
-                let keyChar = key.length ? key.charCodeAt(i % key.length) : 7;
-                let decryptedCode = (code ^ keyChar) - (salt % 13);
-                result += String.fromCharCode(decryptedCode);
-            }
-            return result;
-        } catch(e) { return "Gagal dekripsi: Data korup atau Key salah."; }
-    }
-}
-
-function cipherHard(text, key, isEncrypt) {
-    const salt = getKeySalt(key);
-    let result = "";
-    if (isEncrypt) {
-        for (let i = 0; i < text.length; i++) {
-            let code = text.charCodeAt(i);
-            let keyChar = key.length ? key.charCodeAt((i + salt) % key.length) : 13;
-            let encryptedCode = ((code ^ keyChar) + i) % 65535;
-            result += String.fromCharCode(encryptedCode);
-        }
-        return btoa(unescape(encodeURIComponent(result.split("").reverse().join(""))));
-    } else {
-        try {
-            let decodedText = decodeURIComponent(escape(atob(text))).split("").reverse().join("");
-            for (let i = 0; i < decodedText.length; i++) {
-                let code = decodedText.charCodeAt(i);
-                let keyChar = key.length ? key.charCodeAt((i + salt) % key.length) : 13;
-                let decryptedCode = ((code - i) % 65535) ^ keyChar;
-                if (decryptedCode < 0) decryptedCode += 65535;
-                result += String.fromCharCode(decryptedCode);
-            }
-            return result;
-        } catch(e) { return "Gagal dekripsi: Data korup atau Key salah."; }
-    }
-}
-
-function process(isEncrypt) {
-    const algo = document.getElementById("algo").value;
-    const key = document.getElementById("key").value;
-    const input = document.getElementById("input").value;
-    let output = "";
-
-    if (!input) { alert("Teks input tidak boleh kosong."); return; }
-
-    if (algo === "custom_easy") { output = cipherEasy(input, key, isEncrypt); } 
-    else if (algo === "custom_hard") { output = cipherHard(input, key, isEncrypt); }
-
-    document.getElementById("output").value = output;
-}
-
-// Fungsi Salin Clipboard Otomatis
-function copyResult() {
-    const outputText = document.getElementById("output");
-    if (!outputText.value || outputText.value.startsWith("Gagal dekripsi")) {
-        alert("Tidak ada hasil valid untuk disalin.");
-        return;
-    }
-    
-    // Fallback menggunakan select() untuk kompatibilitas webview Android lama
-    outputText.select();
-    outputText.setSelectionRange(0, 99999); 
-    
-    navigator.clipboard.writeText(outputText.value)
-        .then(() => { alert("Hasil berhasil disalin ke clipboard!"); })
-        .catch(() => {
-            // Jika API Clipboard gagal/ditolak di Android lokal
-            document.execCommand("copy");
-            alert("Hasil disalin!");
-        });
-}
-</script>
+    <!-- Optional: tiny script for analytics / click logging (purely cosmetic) -->
+    <script>
+        (function() {
+            // Just a small touch to make the cards feel responsive.
+            // No functional changes.
+            console.log('🔐 Crypto Offline — gateway siap.');
+        })();
+    </script>
 
 </body>
 </html>
